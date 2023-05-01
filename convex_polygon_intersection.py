@@ -3,10 +3,10 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
-from edge import get_edges
+from .edge import get_edges
 
 
-def intersect(polygon1, polygon2):
+def polyintersect(polygon1, polygon2):
     """
     The given polygons must be convex and their vertices must be in anti-clockwise order (this is not checked!)
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     polygon1 = generate_random_convex_polygon()
     polygon2 = generate_random_convex_polygon()
-    polygon3 = intersect(polygon1, polygon2)
+    polygon3 = polyintersect(polygon1, polygon2)
 
     plot_polygon(polygon1)
     plot_polygon(polygon2)
