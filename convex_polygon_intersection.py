@@ -1,7 +1,5 @@
 import random
-
-import matplotlib.pyplot as plt
-import numpy as np
+import math
 
 from .edge import get_edges
 
@@ -38,9 +36,14 @@ def _get_edge_intersection_points(polygon1, polygon2):
 
 def _polygon_contains_point(polygon, point):
     for i in range(len(polygon)):
-        a = np.subtract(polygon[i], polygon[i - 1])
-        b = np.subtract(point, polygon[i - 1])
-        if np.cross(a, b) < 0:
+        # a = np.subtract(polygon[i], polygon[i - 1])
+        # b = np.subtract(point, polygon[i - 1])
+        # if np.cross(a, b) < 0:
+        #     return False
+
+        a = polygon[i] - polygon[i - 1]
+        b = point - polygon[i - 1]
+        if a[0] * b[1] - a[1] * b[0] < 0:
             return False
     return True
 
@@ -49,27 +52,35 @@ def _sort_vertices_anti_clockwise_and_remove_duplicates(polygon, tolerance=1e-7)
     polygon = sorted(polygon, key=lambda p: _get_angle_in_radians(_get_bounding_box_midpoint(polygon), p))
 
     def vertex_not_similar_to_previous(_polygon, i):
-        diff = np.subtract(_polygon[i - 1], _polygon[i])
-        return np.linalg.norm(diff, np.inf) > tolerance
+        # diff = np.subtract(_polygon[i - 1], _polygon[i])
+        # return np.linalg.norm(diff, np.inf) > tolerance
+        diff = _polygon[i - 1] - _polygon[i]
+        return any((abs(x - y) > tolerance for x, y in zip(_polygon[i - 1], _polygon[i])))
 
     return [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
 
 
 def _get_angle_in_radians(point1, point2):
-    return np.arctan2(point2[1] - point1[1], point2[0] - point1[0])
+    return math.atan2(point2[1] - point1[1], point2[0] - point1[0])
 
 
 def _get_bounding_box_midpoint(polygon):
     x = [p[0] for p in polygon]
     y = [p[1] for p in polygon]
-    return [(np.max(x) + np.min(x)) / 2., (np.max(y) + np.min(y)) / 2.]
+    return [(max(x) + min(x)) / 2., (max(y) + min(y)) / 2.]
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import wx
+    import wx_tools
 
     def generate_random_convex_polygon():
         return _sort_vertices_anti_clockwise_and_remove_duplicates(
-            [[np.cos(x), np.sin(x)] for x in np.random.rand(random.randint(3, 6)) * 2 * np.pi])
+            # [[np.cos(x), np.sin(x)] for x in np.random.rand(random.randint(3, 6)) * 2 * np.pi]
+            [wx.Point2D(math.cos(x), math.sin(x)) for x in np.random.rand(random.randint(3, 6)) * 2 * np.pi]
+        )
 
 
     def plot_polygon(polygon):
