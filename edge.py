@@ -10,9 +10,9 @@ def get_edges(polygon):
 
 
 class Edge:
-    def __init__(self, point_a, point_b):
+    def __init__(self, point_a, point_b=None, *, direction=None):
         self._support_vector = point_a
-        self._direction_vector = point_b - point_a
+        self._direction_vector = point_b - point_a if direction is None else direction
 
     def get_intersection_point(self, other):
         t = self._get_intersection_parameter(other)
@@ -26,7 +26,7 @@ class Edge:
     def _get_point(self, parameter):
         return self._support_vector + self._direction_vector * parameter
 
-    def _get_intersection_parameter(self, other):
+    def _get_intersection_parameter(self, other, check_range=True):
         # A = np.array([-self._direction_vector, other._direction_vector]).T
         # if np.linalg.matrix_rank(A) < 2:
         #     return None
@@ -43,4 +43,6 @@ class Edge:
         x0 = (other._direction_vector[1] * b[0] - other._direction_vector[0] * b[1]) / det
         x1 = (self._direction_vector[1] * b[0] - self._direction_vector[0] * b[1]) / det
 
-        return x0 if 0 <= x0 <= 1 and 0 <= x1 <= 1 else None
+        if check_range:
+            return x0 if 0 <= x0 <= 1 and 0 <= x1 <= 1 else None
+        return (x0, x1)
