@@ -4,7 +4,7 @@ import math
 from .edge import get_edges
 
 
-def polyintersect(polygon1, polygon2):
+def polyintersect(polygon1, polygon2, tolerance=None):
     """
     The given polygons must be convex and their vertices must be in anti-clockwise order (this is not checked!)
 
@@ -12,15 +12,15 @@ def polyintersect(polygon1, polygon2):
 
     """
     polygon3 = list()
-    polygon3 += _get_vertices_lying_in_the_other_polygon(polygon1, polygon2)
+    polygon3 += _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance or 0)
     polygon3 += _get_edge_intersection_points(polygon1, polygon2)
-    return _sort_vertices_anti_clockwise_and_remove_duplicates(polygon3)
+    return _sort_vertices_anti_clockwise_and_remove_duplicates(polygon3, tolerance or 1e-7)
 
 
-def _get_vertices_lying_in_the_other_polygon(polygon1, polygon2):
+def _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance=0):
     vertices = list()
-    vertices += [vertex for vertex in polygon1 if _polygon_contains_point(polygon2, vertex)]
-    vertices += [vertex for vertex in polygon2 if _polygon_contains_point(polygon1, vertex)]
+    vertices += [vertex for vertex in polygon1 if _polygon_contains_point(polygon2, vertex, tolerance)]
+    vertices += [vertex for vertex in polygon2 if _polygon_contains_point(polygon1, vertex, tolerance)]
     return vertices
 
 
@@ -34,7 +34,7 @@ def _get_edge_intersection_points(polygon1, polygon2):
     return intersection_points
 
 
-def _polygon_contains_point(polygon, point):
+def _polygon_contains_point(polygon, point, tolerance=0):
     for i in range(len(polygon)):
         # a = np.subtract(polygon[i], polygon[i - 1])
         # b = np.subtract(point, polygon[i - 1])
@@ -43,7 +43,7 @@ def _polygon_contains_point(polygon, point):
 
         a = polygon[i] - polygon[i - 1]
         b = point - polygon[i - 1]
-        if a[0] * b[1] - a[1] * b[0] < 0:
+        if a[0] * b[1] - a[1] * b[0] < -tolerance:
             return False
     return True
 
