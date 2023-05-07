@@ -11,16 +11,34 @@ def polyintersect(polygon1, polygon2, tolerance=None):
     Example: polygon1 = [[0,0], [0,1], [1,1]]
 
     """
+    # Degenerate cases where one or both of the polygons is a point
+    if len(polygon1) < 2 or len(polygon2) < 2:
+        return []
+
     polygon3 = list()
     polygon3 += _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance or 0)
     polygon3 += _get_edge_intersection_points(polygon1, polygon2)
     return _sort_vertices_anti_clockwise_and_remove_duplicates(polygon3, tolerance or 1e-7)
 
 
+def _nondegenerate_polygon(polygon, tolerance=1e-7):
+    if len(polygon) < 3:
+        return False
+
+    pi = polygon[-1]
+    pj = polygon[0]
+    signed_area = pi[0] * pj[1] - pj[0] * pi[1]
+    for pi, pj in zip(polygon[:-1], polygon[1:]):
+        signed_area += pi[0] * pj[1] - pj[0] * pi[1]
+
+    return abs(signed_area) > tolerance
+
 def _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance=0):
     vertices = list()
-    vertices += [vertex for vertex in polygon1 if _polygon_contains_point(polygon2, vertex, tolerance)]
-    vertices += [vertex for vertex in polygon2 if _polygon_contains_point(polygon1, vertex, tolerance)]
+    if _nondegenerate_polygon(polygon2):
+        vertices += [vertex for vertex in polygon1 if _polygon_contains_point(polygon2, vertex, tolerance)]
+    if _nondegenerate_polygon(polygon1):
+        vertices += [vertex for vertex in polygon2 if _polygon_contains_point(polygon1, vertex, tolerance)]
     return vertices
 
 
@@ -57,6 +75,9 @@ def _sort_vertices_anti_clockwise_and_remove_duplicates(polygon, tolerance=1e-7)
         diff = _polygon[i - 1] - _polygon[i]
         return any((abs(x - y) > tolerance for x, y in zip(_polygon[i - 1], _polygon[i])))
 
+    vertices = [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
+    if len(vertices) > 2 and not _nondegenerate_polygon(vertices):
+        print(vertices)
     return [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
 
 
