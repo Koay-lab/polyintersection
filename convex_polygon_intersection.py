@@ -17,7 +17,7 @@ def polyintersect(polygon1, polygon2, tolerance=None):
 
     polygon3 = list()
     polygon3 += _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance or 0)
-    polygon3 += _get_edge_intersection_points(polygon1, polygon2)
+    polygon3 += _get_edge_intersection_points(polygon1, polygon2, tolerance or 1e-7)
     return _sort_vertices_anti_clockwise_and_remove_duplicates(polygon3, tolerance or 1e-7)
 
 
@@ -42,11 +42,11 @@ def _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance=0):
     return vertices
 
 
-def _get_edge_intersection_points(polygon1, polygon2):
+def _get_edge_intersection_points(polygon1, polygon2, tolerance=0):
     intersection_points = list()
     for edge1 in get_edges(polygon1):
         for edge2 in get_edges(polygon2):
-            intersection_point = edge1.get_intersection_point(edge2)
+            intersection_point = edge1.get_intersection_point(edge2, tolerance)
             if intersection_point is not None:
                 intersection_points.append(intersection_point)
     return intersection_points
@@ -78,6 +78,7 @@ def _sort_vertices_anti_clockwise_and_remove_duplicates(polygon, tolerance=1e-7)
     vertices = [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
     if len(vertices) > 2 and not _nondegenerate_polygon(vertices):
         print(vertices)
+        _nondegenerate_polygon(vertices)
     return [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
 
 

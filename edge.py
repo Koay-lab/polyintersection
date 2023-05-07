@@ -14,8 +14,8 @@ class Edge:
         self._support_vector = point_a
         self._direction_vector = point_b - point_a if direction is None else direction
 
-    def get_intersection_point(self, other):
-        t = self._get_intersection_parameter(other)
+    def get_intersection_point(self, other, tolerance=0):
+        t = self._get_intersection_parameter(other, tolerance)
         return None if t is None else self._get_point(t)
 
     def intersects(self, other):
@@ -26,7 +26,7 @@ class Edge:
     def _get_point(self, parameter):
         return self._support_vector + self._direction_vector * parameter
 
-    def _get_intersection_parameter(self, other, check_range=True):
+    def _get_intersection_parameter(self, other, tolerance=0, check_range=True):
         # A = np.array([-self._direction_vector, other._direction_vector]).T
         # if np.linalg.matrix_rank(A) < 2:
         #     return None
@@ -36,7 +36,7 @@ class Edge:
 
         det = self._direction_vector[1] * other._direction_vector[0] \
               - self._direction_vector[0] * other._direction_vector[1]
-        if det == 0:
+        if abs(det) <= tolerance:
             return None
 
         b = self._support_vector - other._support_vector
@@ -44,5 +44,5 @@ class Edge:
         x1 = (self._direction_vector[1] * b[0] - self._direction_vector[0] * b[1]) / det
 
         if check_range:
-            return x0 if 0 <= x0 <= 1 and 0 <= x1 <= 1 else None
+            return x0 if -tolerance <= x0 <= 1 + tolerance and -tolerance <= x1 <= 1 + tolerance else None
         return (x0, x1)
