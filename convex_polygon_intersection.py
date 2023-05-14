@@ -96,7 +96,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy as np
     import wx
-    import wx_tools
+    from koaylab import wxextensions
 
     def generate_random_convex_polygon():
         return _sort_vertices_anti_clockwise_and_remove_duplicates(
