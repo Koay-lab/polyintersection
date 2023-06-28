@@ -4,20 +4,21 @@ import math
 from .edge import get_edges
 
 
-def polyintersect(polygon1, polygon2, tolerance=None):
+def polyintersect(polygon1, polygon2, tolerance=None, include_single_vertex=True):
     """
     The given polygons must be convex and their vertices must be in anti-clockwise order (this is not checked!)
 
     Example: polygon1 = [[0,0], [0,1], [1,1]]
 
     """
-    # Degenerate cases where one or both of the polygons is a point
-    if len(polygon1) < 2 or len(polygon2) < 2:
-        return []
-
     polygon3 = list()
+    if include_single_vertex:
+        polygon3 += _get_common_vertices(polygon1, polygon2, tolerance or 1e-7)
     polygon3 += _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance or 0)
-    polygon3 += _get_edge_intersection_points(polygon1, polygon2, tolerance or 1e-7)
+
+    if len(polygon1) > 1 and len(polygon2) > 1:
+        polygon3 += _get_edge_intersection_points(polygon1, polygon2, tolerance or 1e-7)
+
     return _sort_vertices_anti_clockwise_and_remove_duplicates(polygon3, tolerance or 1e-7)
 
 
@@ -32,6 +33,12 @@ def _nondegenerate_polygon(polygon, tolerance=1e-7):
         signed_area += pi[0] * pj[1] - pj[0] * pi[1]
 
     return abs(signed_area) > tolerance
+
+
+def _get_common_vertices(polygon1, polygon2, tolerance=1e-7):
+    return [p1 for p1 in polygon1
+            if any(all(abs(x1 - x2) <= tolerance for x1, x2 in zip(p1, p2)) for p2 in polygon2)]
+
 
 def _get_vertices_lying_in_the_other_polygon(polygon1, polygon2, tolerance=0):
     vertices = list()
@@ -54,11 +61,6 @@ def _get_edge_intersection_points(polygon1, polygon2, tolerance=0):
 
 def _polygon_contains_point(polygon, point, tolerance=0):
     for i in range(len(polygon)):
-        # a = np.subtract(polygon[i], polygon[i - 1])
-        # b = np.subtract(point, polygon[i - 1])
-        # if np.cross(a, b) < 0:
-        #     return False
-
         a = polygon[i] - polygon[i - 1]
         b = point - polygon[i - 1]
         if a[0] * b[1] - a[1] * b[0] < -tolerance:
@@ -70,15 +72,12 @@ def _sort_vertices_anti_clockwise_and_remove_duplicates(polygon, tolerance=1e-7)
     polygon = sorted(polygon, key=lambda p: _get_angle_in_radians(_get_bounding_box_midpoint(polygon), p))
 
     def vertex_not_similar_to_previous(_polygon, i):
-        # diff = np.subtract(_polygon[i - 1], _polygon[i])
-        # return np.linalg.norm(diff, np.inf) > tolerance
-        diff = _polygon[i - 1] - _polygon[i]
-        return any((abs(x - y) > tolerance for x, y in zip(_polygon[i - 1], _polygon[i])))
+        return i == 0 or any((abs(x - y) > tolerance for x, y in zip(_polygon[i - 1], _polygon[i])))
 
-    vertices = [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
-    if len(vertices) > 2 and not _nondegenerate_polygon(vertices):
-        print(vertices)
-        _nondegenerate_polygon(vertices)
+    # vertices = [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
+    # if len(vertices) > 2 and not _nondegenerate_polygon(vertices):
+    #     print(vertices)
+    #     _nondegenerate_polygon(vertices)
     return [p for i, p in enumerate(polygon) if vertex_not_similar_to_previous(polygon, i)]
 
 
